@@ -3,7 +3,7 @@ namespace nat
 /-
   Part 1. Summation.
 -/
-
+--idk
 -- define summation up to (but not including) n
 def sum_upto (n : ℕ) (f : ℕ → ℕ) : ℕ :=
 nat.rec_on n 0 (λ n recval, recval + f n)
