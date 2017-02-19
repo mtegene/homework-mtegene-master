@@ -3,7 +3,6 @@ namespace nat
 /-
   Part 1. Summation.
 -/
---idk
 -- define summation up to (but not including) n
 def sum_upto (n : ℕ) (f : ℕ → ℕ) : ℕ :=
 nat.rec_on n 0 (λ n recval, recval + f n)
@@ -14,10 +13,34 @@ theorem sum_upto_succ (f : ℕ → ℕ) (n : ℕ) : sum_upto (succ n) f = sum_up
 
 -- fill in the next two proofs
 theorem sum_upto_mul (n m : ℕ) (f : ℕ → ℕ) : sum_upto n (λ x, m * f x) = m * (sum_upto n f) :=
-sorry
+nat.induction_on n rfl 
+(take n,
+ assume ih: sum_upto n (λ x, m * f x) = m * (sum_upto n f),
+ show sum_upto (succ n) (λ x, m * f x) = m * (sum_upto (succ n) f), from
+calc
+  sum_upto (succ n) (λ x, m * f x) = sum_upto n (λ x, m * f x) + (λ x, m * f x) n : by rw sum_upto_succ
+          ...                      = m * (sum_upto n f) + (λ x, m * f x) n        : by rw ih
+          ...                      = m * (sum_upto n f) + m * ((λ x, f x ) n)     : rfl
+          ...                      = m * (sum_upto n f + (λ x, f x) n)            : by rw mul_add
+          ...                      = m * (sum_upto n f + f n)                     : rfl
+          ...                      = m * (sum_upto (succ n) f)                    : by rw sum_upto_succ)
 
 theorem sum_upto_id (n : ℕ) : 2 * sum_upto (succ n) id = n * (n + 1) :=
-sorry
+nat.induction_on n rfl
+(take n,
+  assume ih: 2 * sum_upto (succ n) id = n * (n + 1),
+  show 2 * sum_upto (succ (succ n)) id = (succ n) * ((succ n) + 1), from
+  calc 
+    2 * sum_upto (succ (succ n)) id = 2 * (sum_upto (succ n) id + id (succ n)) : by rw sum_upto_succ
+            ...                     = 2 * (sum_upto (succ n) id) + 2 * id(succ n) : by rw mul_add
+            ...                     = n * (n + 1) + 2 * id (succ n)          : by rw ih
+            ...                     = n * (n + 1) + 2 * (succ n)             : rfl
+            ...                     = n * (succ n) + 2 * (succ n)            : rfl
+            ...                     = (succ n) * n + 2 * (succ n)            : by rw mul_comm
+            ...                     = (succ n) * n + (succ n) * 2            : by simp --by rw mul_comm
+            ...                     = (succ n) * (n + 2)                     : by rw mul_add 
+            ...                     = (succ n) * (n + 1 + 1)                 : rfl
+            ...                     = (succ n) * ((succ n) + 1)              : rfl)
 
 /-
    Part 2. Exponentiation on nat.
@@ -36,14 +59,54 @@ theorem pow_zero (m : ℕ) : m ^ 0 = 1 := rfl
 theorem pow_succ (m n : ℕ) : m ^ (succ n) = m * m ^ n := rfl
 
 -- fill in the next four proofs
-theorem zero_pow_succ (n : ℕ) : 0^(succ n) = 0 :=
-sorry
+theorem zero_pow_succ (n : ℕ) : 0^(succ n) = 0 := 
+nat.induction_on n rfl 
+( take n,
+  assume ih,
+  show 0^(succ (succ n)) = 0, from 
+  calc
+      0^(succ (succ n)) = 0 * 0^(succ n)  : by rw pow_succ
+          ...           = 0 * 0           : by rw ih
+          ...           = 0               : by rw mul_zero)
 
 theorem pow_add (m n k : ℕ) : m ^ (n + k) = m ^ n * m ^ k :=
-sorry
+nat.induction_on n 
+  (calc 
+      m ^ (0 + k) = m ^ k         : by rw zero_add
+          ...     = 1 * m ^ k     : by rw one_mul
+          ...     = m ^ 0 * m ^ k : rfl) 
+  (take n,
+    assume ih,
+    show m ^ ((succ n) + k) = m ^ (succ n) * m ^ k, from 
+    calc
+     m ^ ((succ n) + k) = m ^ ((n + 1) + k)    : rfl
+          ...          = m ^ (k + (n + 1))    : by rw add_comm
+          ...          = m ^ ((k + n) + 1)    : by rw add_assoc
+          ...          = m ^ ((n + k) + 1)    : by simp
+          ...          = m ^ (succ (n + k))   : rfl
+          ...          = m * m ^ (n + k)      : by rw pow_succ
+          ...          = m * (m ^ n * m ^ k)  : by rw ih
+          ...          = (m * m ^ n) * m ^ k  : by rw mul_assoc
+          ...          = m ^ (succ n) * m ^ k : by rw pow_succ)
+
 
 theorem pow_mul (m n k : ℕ) : m ^ (n * k) = (m ^ n) ^ k :=
-sorry
+nat.induction_on k 
+(calc
+  m ^ (n * 0) = m ^ (0)     : by rw mul_zero
+      ...     = 1           : by rw pow_zero
+      ...     = (m ^ n) ^ 0 : by rw pow_zero) 
+(take k,
+ assume ih,
+ show  m ^ (n * (succ k)) = (m ^ n) ^ (succ k), from 
+ calc
+      m ^ (n * (succ k)) = m ^ (n * (k + 1))      : rfl
+            ...          = m ^ (n * k + n * 1)    : by rw mul_add
+            ...          = m ^ (n * k) * m ^ (n * 1) : sorry
+            ...          = (m ^ n) ^ k * m ^ (n * 1) : by rw ih
+            ...          = (m ^ n) ^ k * (m ^ n) : by rw mul_one
+            ...          = (m ^ n) * (m ^ n) ^ k : by rw mul_comm
+            ...          = (m ^ n) ^ (succ k)     : by rw pow_succ)
 
 check zero_lt_one
 check mul_pos
