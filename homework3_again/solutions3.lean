@@ -112,6 +112,8 @@ check zero_lt_one
 check mul_pos
 
 theorem pow_pos {m : ℕ} (h : m > 0) {n : ℕ} : m^n > 0 :=
+nat.induction_on n 
+(sorry) 
 sorry
 
 /- The last one is pow_le, below. It is not easy, so just give it your best
@@ -159,9 +161,11 @@ instance : has_dvd nat := ⟨nat.dvd⟩
 -- type "dvd" with \|
 
 theorem dvd_rfl (m : ℕ) : m ∣ m :=
-sorry
+exists.intro 1 (by rw [(mul_one m)])
 
 theorem dvd_trans : ∀ {m n k : ℕ}, m ∣ n → n ∣ k → m ∣ k :=
+take m n k,
+assume h1 h2,
 sorry
 
 theorem dvd_mul_left (m n : ℕ) : m ∣ m * n :=
