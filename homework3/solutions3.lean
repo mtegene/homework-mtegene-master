@@ -109,12 +109,16 @@ nat.induction_on k
             ...          = (m ^ n) ^ (succ k)     : by rw pow_succ)
 
 check zero_lt_one
-check mul_pos
+check @mul_pos
 
 theorem pow_pos {m : ℕ} (h : m > 0) {n : ℕ} : m^n > 0 :=
 nat.induction_on n 
-(sorry) 
-sorry
+( have H1: m^0 = 1, from rfl, 
+  show m^0 > 0, from zero_lt_one)
+( take n,
+  assume ih,
+  have H1: m^ (succ n) = m * m^n, from rfl,
+  show m^(succ n) > 0, from mul_pos h ih)
 
 /- The last one is pow_le, below. It is not easy, so just give it your best
    shot. The next few examples might be helpful. -/
