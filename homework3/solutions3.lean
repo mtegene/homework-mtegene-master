@@ -146,10 +146,16 @@ or.elim h
     begin
       rw mul_one at this, exact this
     end)
-
+check @mul_le_mul_left
 -- Be careful! The following theorem is false without the hypotheses m > 0 (why?)
 theorem pow_le (m : ℕ) {n k : ℕ} (h : n ≤ k) (mpos : m > 0) : m^n ≤ m^k :=
+have H1: m*n ≤ m*k, from (mul_le_mul_left m h),
 sorry
+--Are you supposed to use induction? Because I couldn't figure out what I 
+--was supposed to induct on.
+--Without induction, I do not know how to expand m ^ n since ^ is defined for
+--m ^ succ n
+
 
 check le_of_eq
 
