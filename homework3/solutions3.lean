@@ -126,9 +126,9 @@ nat.induction_on n
 -- By the way, this is a useful trick. I will explain it in class.
 example : 3 < 7 := dec_trivial
 
-check mul_le_mul
-check mul_le_mul_left
-check nat.zero_le
+check @mul_le_mul
+check @mul_le_mul_left
+check @nat.zero_le
 
 example (m : ℕ) (h : m > 0) : m ≥ 1 := succ_le_of_lt h
 -- actually, on ℕ, x < y is defined to mean succ x < y
@@ -151,6 +151,8 @@ or.elim h
 theorem pow_le (m : ℕ) {n k : ℕ} (h : n ≤ k) (mpos : m > 0) : m^n ≤ m^k :=
 sorry
 
+check le_of_eq
+
 /-
   Part 3. Division on the Natural Numbers.
 
@@ -170,16 +172,52 @@ exists.intro 1 (by rw [(mul_one m)])
 theorem dvd_trans : ∀ {m n k : ℕ}, m ∣ n → n ∣ k → m ∣ k :=
 take m n k,
 assume h1 h2,
-sorry
+have H1: ∃ a, n = m * a, from h1,
+have H2: ∃ b, k = n * b, from h2,
+exists.elim H1
+(take a,
+  assume H3: n = m * a,
+  exists.elim H2 
+  (take b,
+    assume H4: k = n * b,
+    show ∃ c, k = m * c, from 
+      (have H5: k = m * a * b, from (by rw [-H3, H4]), 
+       have H6: k = m * (a * b), from (by rw [H5, mul_assoc]),
+      exists.intro (a * b) H6)))
+
 
 theorem dvd_mul_left (m n : ℕ) : m ∣ m * n :=
-sorry
+have H1: m ∣ m, from (dvd_rfl m),
+have H2: ∃ a, m = m * a, from H1,
+exists.elim H2
+(take a,
+  assume H3: m = m * a,
+  have H4: m * n = m * a * n, from (by rw [-H3]),
+  have H5: m * n = m * (a * n), from (by rw [H4, mul_assoc]),
+  show m ∣ m * n , from exists.intro (a * n) H5)
 
 theorem dvd_mul_right (m n : ℕ) : m ∣ n * m :=
-sorry
+have H1: m ∣ m * n, from (dvd_mul_left m n),
+have H2: ∃ a, m * n = m * a, from H1,
+exists.elim H2 
+(take a,
+  assume H3: m * n = m * a,
+  have H4: n * m = m * a, from (by rw [-H3, mul_comm]),
+  show m ∣ n * m, from exists.intro a H4) 
 
 theorem dvd_add : ∀ {m n k : ℕ}, m ∣ n → m ∣ k → m ∣ (n + k) :=
-sorry
+take m n k,
+take h₁ h₂,
+have H1: ∃ a, n = m * a, from h₁,
+have H2: ∃ b, k = m * b, from h₂,
+exists.elim H1
+(take a,
+  assume H3: n = m * a,
+  exists.elim H2 
+  (take b,
+   assume H4: k = m * b,
+   have H5: n + k = m * (a + b), from (by rw [H3, H4, mul_add]),
+   show m ∣ (n + k), from exists.intro (a + b) H5))
 
 end nat
 
@@ -220,12 +258,28 @@ calc
     ... = 2 * m       : rfl
 
 -- these might be useful.
-check nat.sub_add_cancel
-check nat.add_sub_assoc
+check @nat.sub_add_cancel
+check @nat.add_sub_assoc
 
 -- prove this by induction on binary trees
 theorem size_le' : ∀ b : btree, size b + 1 ≤ 2 ^ depth b :=
-sorry
+take b,
+btree.induction_on b 
+dec_trivial 
+(take b₁ b₂,
+ assume ih₁ ih₂,
+ have H1: (size b₁ + 1) + (size b₂ + 1) ≤ (2 ^ depth b₁) + (2 ^ depth b₂), from (add_le_add ih₁ ih₂), 
+ have H2: 2 ^ (max (depth b₁) (depth b₂) + 1) = 2 ^ depth (node b₁ b₂), from rfl,
+ have H3:  2 ^ (max (depth b₁) (depth b₂) + 1) ≤ 2 ^ depth (node b₁ b₂), from (le_of_eq H2),
+ calc
+    size (node b₁ b₂) + 1 = (size b₁ + size b₂ + 1) + 1 : rfl
+          ...             = (size b₁ + 1) + (size b₂ + 1) : by simp
+          ...             ≤ (2 ^ depth b₁) + (2 ^ depth b₂) : H1
+          ...             ≤ 2 ^ (max (depth b₁) (depth b₂) + 1) : sorry
+          ...             = 2 ^ depth (node b₁ b₂) : rfl
+          ...             ≤ 2 ^ depth (node b₁ b₂) : H3)
+check @add_le_add
+
 
 theorem size_le : ∀ b : btree, size b ≤ 2 ^ depth b - 1:=
 take b,
